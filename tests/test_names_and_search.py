@@ -1,7 +1,7 @@
 """Regression tests: pantry names must line up with recipes, and search must return relevant recipes."""
 import pytest
 
-from app.core import names
+
 from app.core.search import parse_query, search
 from app.repositories import ingredients as ingredient_repo
 from app.repositories import recipes as recipe_repo

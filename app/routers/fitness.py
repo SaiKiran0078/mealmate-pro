@@ -136,7 +136,8 @@ def _recipe_micronutrients(conn: sqlite3.Connection, recipe_id: int, servings: f
         key = row["nutrient_key"]
         values[key] = values.get(key, 0.0) + float(row["amount_per_100g"]) * grams / 100.0 / max(row["recipe_servings"], 1) * servings
         source = {"ingredient": row["name"], "source": row["source_name"], "source_id": row["source_id"], "nutrient": key, "unit": row["unit"]}
-        if source not in sources: sources.append(source)
+        if source not in sources:
+            sources.append(source)
     return {"values": {k: round(v, 4) for k, v in values.items()}, "sources": sources}
 
 
@@ -166,7 +167,8 @@ def add_diary_entry(body: DiaryIn, user: CurrentUser, conn: Conn, today: Today) 
            values["kcal"] * values["servings"], values["protein_g"] * values["servings"],
            values["carbs_g"] * values["servings"], values["fat_g"] * values["servings"], json.dumps(micros), source))
     row = conn.execute("SELECT * FROM food_diary WHERE id=?", (cur.lastrowid,)).fetchone()
-    result = dict(row); result["micros"] = json.loads(result.pop("micros_json"))
+    result = dict(row)
+    result["micros"] = json.loads(result.pop("micros_json"))
     return result
 
 
@@ -175,7 +177,9 @@ def list_diary(user: CurrentUser, conn: Conn, today: Today, day: date = Query(de
     rows = conn.execute("SELECT * FROM food_diary WHERE user_id=? AND consumed_on=? ORDER BY created_at,id", (user.id, (day or today).isoformat()))
     output = []
     for row in rows:
-        item = dict(row); item["micros"] = json.loads(item.pop("micros_json")); output.append(item)
+        item = dict(row)
+        item["micros"] = json.loads(item.pop("micros_json"))
+        output.append(item)
     return output
 
 
@@ -253,7 +257,8 @@ def list_workouts(user: CurrentUser, conn: Conn, day: date | None = None, limit:
 def delete_workout(workout_id: int, user: CurrentUser, conn: Conn) -> dict:
     with conn:
         cur = conn.execute("DELETE FROM workouts WHERE id=? AND user_id=?", (workout_id, user.id))
-    if not cur.rowcount: raise HTTPException(404, "Workout not found")
+    if not cur.rowcount:
+        raise HTTPException(404, "Workout not found")
     return {"deleted": True, "id": workout_id}
 
 
@@ -272,7 +277,8 @@ def discover_recipes(q: str = Query(min_length=1, max_length=80), limit: int = Q
 @router.get("/nutrition/ingredients/{ingredient_id}/micronutrients")
 def ingredient_micronutrients(ingredient_id: int, user: CurrentUser, conn: Conn) -> dict:
     ing = conn.execute("SELECT id,name FROM ingredients WHERE id=?", (ingredient_id,)).fetchone()
-    if not ing: raise HTTPException(404, "Ingredient not found")
+    if not ing:
+        raise HTTPException(404, "Ingredient not found")
     rows = conn.execute("SELECT nutrient_key,amount_per_100g,unit,source_name,source_id FROM ingredient_nutrients WHERE ingredient_id=? ORDER BY nutrient_key", (ingredient_id,))
     facts = [dict(r) for r in rows]
     return {"ingredient": ing["name"], "basis": "per 100 g", "micronutrients": facts,
@@ -340,7 +346,8 @@ def recipe_micronutrients(recipe_id: int, user: CurrentUser, conn: Conn) -> dict
         target = totals.setdefault(key, {"nutrient": key, "amount": 0.0, "unit": row["unit"], "sources": []})
         target["amount"] += float(row["amount_per_100g"]) * grams / 100.0 / recipe.servings
         source = {"name": row["source_name"], "id": row["source_id"], "ingredient": row["name"]}
-        if source not in target["sources"]: target["sources"].append(source)
+        if source not in target["sources"]:
+            target["sources"].append(source)
     return {"recipe_id": recipe_id, "title": recipe.title, "basis": "per serving", "micronutrients":
             [{**v, "amount": round(v["amount"], 3)} for v in totals.values()],
             "data_complete": bool(totals), "note": "Only nutrients linked to a source-attributed USDA record are included; missing values are not treated as zero."}
@@ -364,7 +371,8 @@ def workout_fuel_recommendations(user: CurrentUser, conn: Conn, phase: Literal["
 @router.get("/recipes/{recipe_id}/workout-fuel")
 def workout_fuel(recipe_id: int, user: CurrentUser, conn: Conn, phase: Literal["pre", "post"] = "pre") -> dict:
     recipe = recipe_repo.get_recipe(conn, recipe_id, user.id)
-    if recipe is None: raise HTTPException(404, "Recipe not found")
+    if recipe is None:
+        raise HTTPException(404, "Recipe not found")
     n = recipe.nutrition_per_serving
     if phase == "pre":
         guidance = "Choose a familiar meal with easily tolerated carbohydrates; allow roughly 1–3 hours before training based on portion size and comfort."

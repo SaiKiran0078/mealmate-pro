@@ -51,7 +51,8 @@ def test_saved_plan_survives_a_new_connection_and_can_be_deleted(conn, tmp_path)
     from app.db import connect, init_db
 
     path = str(tmp_path / "plans.db")
-    first = connect(path); init_db(first)
+    first = connect(path)
+    init_db(first)
     from app.seed.seeder import seed_if_empty
     seed_if_empty(first)
     u = _user(first)
@@ -75,7 +76,8 @@ def test_other_users_cannot_delete_a_plan(conn):
 
 def test_overlapping_plans_are_not_double_counted_for_a_day(conn):
     u = _user(conn)
-    _save(conn, u); _save(conn, u)                         # two plans cover the same day
+    _save(conn, u)
+    _save(conn, u)                         # two plans cover the same day
     meals = plan_repo.meals_on(conn, u.id, TODAY)
     assert [m["meal_type"] for m in meals] == ["breakfast", "lunch", "dinner"]
 
