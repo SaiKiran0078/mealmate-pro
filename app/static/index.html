@@ -44,7 +44,12 @@
           <label for="auth-email">Email address</label>
           <input id="auth-email" type="email" autocomplete="email" placeholder="you@example.com" required maxlength="254">
           <label for="auth-password">Password</label>
-          <input id="auth-password" type="password" autocomplete="current-password" placeholder="At least 8 characters" required minlength="8" maxlength="128">
+          <div class="password-field">
+            <input id="auth-password" type="password" autocomplete="current-password" placeholder="At least 8 characters" required minlength="8" maxlength="128">
+            <button id="toggle-password" class="password-toggle" type="button" aria-label="Show password" aria-pressed="false" title="Show password">
+              <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
           <button id="auth-submit" class="btn btn-primary btn-full" type="submit">Sign in <span>→</span></button>
         </form>
         <p class="auth-switch" id="auth-switch">New to MealMate? <button type="button" data-auth-tab="register">Create an account</button></p>
@@ -92,13 +97,14 @@
           </div>
           <div class="section-heading"><div><span class="eyebrow">THE ESSENTIALS</span><h2>Your kitchen snapshot</h2></div><button class="text-button" data-page="pantry">Manage pantry →</button></div>
           <div class="stats-grid">
-            <article class="stat-card"><div class="stat-icon green-icon">▤</div><span class="stat-label">Pantry ingredients</span><strong class="stat-value" id="stat-ingredients">—</strong><span class="stat-note" id="stat-ingredients-note">Ingredients on hand</span></article>
-            <article class="stat-card"><div class="stat-icon orange-icon">◷</div><span class="stat-label">Expiring soon</span><strong class="stat-value" id="stat-expiring">—</strong><span class="stat-note" id="stat-expiring-note">Worth using in 3 days</span></article>
-            <article class="stat-card"><div class="stat-icon purple-icon">♨</div><span class="stat-label">Ready to cook</span><strong class="stat-value" id="stat-recipes">—</strong><span class="stat-note" id="stat-recipes-note">Recipes you can cook right now</span></article>
-            <article class="stat-card"><div class="stat-icon blue-icon">▦</div><span class="stat-label">Saved plans</span><strong class="stat-value" id="stat-plans">—</strong><span class="stat-note">Plans ready when you are</span></article>
+            <article class="stat-card stat-card-action" role="link" tabindex="0" data-snapshot-page="pantry" aria-label="Open pantry"><div class="stat-icon green-icon">▤</div><span class="stat-label">Pantry ingredients</span><strong class="stat-value" id="stat-ingredients">—</strong><span class="stat-note" id="stat-ingredients-note">Ingredients on hand</span><span class="snapshot-hint">View pantry →</span></article>
+            <article class="stat-card stat-card-action" role="link" tabindex="0" data-snapshot-scroll="expiring-section" aria-label="View ingredients expiring soon"><div class="stat-icon orange-icon">◷</div><span class="stat-label">Expiring soon</span><strong class="stat-value" id="stat-expiring">—</strong><span class="stat-note" id="stat-expiring-note">Worth using in 3 days</span><span class="snapshot-hint">View items ↓</span></article>
+            <article class="stat-card stat-card-action" role="link" tabindex="0" data-snapshot-page="recipes" aria-label="Find recipes you can cook"><div class="stat-icon purple-icon">♨</div><span class="stat-label">Ready to cook</span><strong class="stat-value" id="stat-recipes">—</strong><span class="stat-note" id="stat-recipes-note">Recipes you can cook right now</span><span class="snapshot-hint">Find recipes →</span></article>
+            <article class="stat-card stat-card-action" role="link" tabindex="0" data-snapshot-page="plans" aria-label="Open saved meal plans"><div class="stat-icon blue-icon">▦</div><span class="stat-label">Saved plans</span><strong class="stat-value" id="stat-plans">—</strong><span class="stat-note">Plans ready when you are</span><span class="snapshot-hint">View plans →</span></article>
+            <article class="stat-card stat-card-action" role="link" tabindex="0" data-snapshot-scroll="dashboard-favourites" aria-label="View favourite recipes"><div class="stat-icon rose-icon">♡</div><span class="stat-label">Favourite recipes</span><strong class="stat-value" id="stat-favorites">—</strong><span class="stat-note">Recipes you have saved</span><span class="snapshot-hint">View favourites ↓</span></article>
           </div>
           <div class="dashboard-columns">
-            <section class="content-card">
+            <section class="content-card" id="expiring-section">
               <div class="card-heading"><div><span class="eyebrow">MAKE IT COUNT</span><h3>Use these soon</h3></div><span class="small-badge">NEXT 3 DAYS</span></div>
               <div id="expiring-list" class="compact-list"><div class="loading-line"></div></div>
             </section>
@@ -111,6 +117,10 @@
             <section class="content-card"><div class="card-heading"><div><span class="eyebrow">TODAY</span><h3>On the menu</h3></div><button class="text-button" data-page="plans">Meal planner →</button></div><div id="today-plan" class="compact-list"><div class="loading-line"></div></div></section>
             <section class="content-card"><div class="card-heading"><div><span class="eyebrow">TODAY</span><h3>Planned vs eaten</h3></div><button class="text-button" data-page="fitness">Log food →</button></div><div id="today-nutrition" class="fitness-targets"><div class="loading-line"></div></div></section>
           </div>
+          <section class="content-card dashboard-favourites-card" id="dashboard-favourites">
+            <div class="card-heading"><div><span class="eyebrow">YOUR COLLECTION</span><h3>Favourite recipes</h3><p class="card-subtitle">Your go-to meals, all in one place.</p></div><button class="text-button" data-page="recipes">Discover more recipes →</button></div>
+            <div id="dashboard-favourite-recipes-list" class="compact-list"><div class="loading-line"></div></div>
+          </section>
           <div class="bottom-cta"><div class="cta-icon">✳</div><div><strong>Not sure what to cook?</strong><p>Tell MealMate what's in your pantry and get ideas made for you.</p></div><button class="btn btn-outline" data-page="recipes">Find my next meal →</button></div>
         </section>
 
@@ -149,10 +159,6 @@
           </div>
           <div class="section-heading"><div><span class="eyebrow">MADE FOR YOUR KITCHEN</span><h2 id="recipe-results-title">Suggested for you</h2></div><span class="muted" id="recipe-results-count"></span></div>
           <div id="recipe-grid"><div class="loading-line"></div></div>
-          <section class="content-card saved-favourites-card">
-            <div class="card-heading"><div><span class="eyebrow">YOUR COLLECTION</span><h3>Favourite recipes</h3></div><button class="text-button" id="refresh-favourites">Refresh ↻</button></div>
-            <div id="favourite-recipes-list" class="compact-list"><div class="empty-inline">Your saved favourites will appear here.</div></div>
-          </section>
         </section>
 
         <section class="page" id="page-plans">
@@ -259,6 +265,6 @@
     <div class="modal-backdrop" data-close-modal></div><div class="modal-panel"><button class="modal-close" data-close-modal aria-label="Close">×</button><div id="modal-content"></div></div>
   </div>
   <script src="/static/render.js"></script>
-  <script src="/static/app.js" defer></script>
+  <script src="/static/app.js?v=20261028-workout-nav-eye" defer></script>
 </body>
 </html>

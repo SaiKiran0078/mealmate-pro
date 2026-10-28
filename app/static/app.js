@@ -13,7 +13,7 @@
     if (options.body && !(options.body instanceof FormData)) headers.set("Content-Type", "application/json");
     if (state.token) headers.set("Authorization", `Bearer ${state.token}`);
     let response;
-    try { response = await fetch(path, {...options, headers}); }
+    try { response = await fetch(path, {...options, headers, cache: options.cache || "no-store"}); }
     catch { throw new Error("Could not connect to MealMate. Check that the FastAPI server is running."); }
     if (response.status === 204) return { ok: true };
     const contentType = response.headers.get("content-type") || "";
@@ -52,23 +52,25 @@
     $("#profile-email").textContent = email; $("#avatar-initial").textContent = initial; $("#top-avatar").textContent = initial;
     $("#welcome-title").textContent = `Let's make something good${email.split("@")[0] ? `, ${email.split("@")[0]}` : ""}.`;
     $("#today-label").textContent = new Date().toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short"});
-    navigate("dashboard");
+    const lastPage = localStorage.getItem("mealmate_last_page") || "dashboard";
+    navigate(lastPage, { save: false });
   }
   async function restoreSession() {
     if (!state.token) return authScreen();
     try { const user = await api("/me"); enterApp(user); }
     catch { state.token = ""; localStorage.removeItem("mealmate_token"); authScreen("login"); }
   }
-  function navigate(page) {
+  function navigate(page, options = {}) {
     const valid = ["dashboard","pantry","recipes","plans","fitness","preferences"].includes(page) ? page : "dashboard";
+    if (options.save !== false) localStorage.setItem("mealmate_last_page", valid);
     $$(".page").forEach(p => p.classList.toggle("active", p.id === `page-${valid}`));
     $$(".nav-item[data-page]").forEach(b => b.classList.toggle("active", b.dataset.page === valid));
     const titles = {dashboard:"Overview",pantry:"My pantry",recipes:"Find recipes",plans:"Meal planner",fitness:"Fitness & nutrition",preferences:"Preferences"};
     $("#current-section").textContent = titles[valid]; $("#sidebar").classList.remove("open");
-    if (valid === "dashboard") loadDashboard();
+    if (valid === "dashboard") { loadDashboard(); loadFavorites(); }
     if (valid === "pantry") loadPantry();
     if (valid === "recipes") loadRecipes();
-    if (valid === "plans") { loadPlans(); loadPlanPantryPicks(); }
+    if (valid === "plans") { loadPlans(); loadPlanPantryPicks(); loadFavorites(); }
     if (valid === "fitness") loadFitness();
     if (valid === "preferences") loadPreferences();
     window.scrollTo({top:0,behavior:"smooth"});
@@ -166,15 +168,24 @@
   async function loadFavorites() {
     const target = $("#favourite-recipes-list");
     try {
-      const rows = await api("/recipes/favorites");
-      if (target) target.innerHTML = rows.length ? rows.map(r => `<div class="compact-row"><span class="ingredient-symbol">${foodEmoji(r.title)}</span><div class="compact-info"><strong>${esc(r.title)}</strong><small>${r.rating ? `Your rating: ${r.rating}/5` : "Not rated yet"} · ${esc(r.total_min ?? 0)} min</small></div><button class="text-button" data-recipe-open="${r.id}">View →</button><button class="text-button" data-unfavorite="${r.id}">Remove favourite</button></div>`).join("") : empty("Save a recipe with ♡ Favourite and it will appear here.");
-      const ids = new Set(rows.map(r => String(r.id)));
-      $$("[data-favorite-toggle]").forEach(button => {
-        const active = ids.has(button.dataset.favoriteToggle);
+      const [rows, feedback] = await Promise.all([api("/recipes/favorites"), api("/recipes/feedback")]);
+      const listHtml = rows.length ? rows.map(r => `<div class="compact-row"><span class="ingredient-symbol">${foodEmoji(r.title)}</span><div class="compact-info"><strong>${esc(r.title)}</strong><small>${r.rating ? `Your rating: ${r.rating}/5` : "Not rated yet"} · ${esc(r.total_min ?? 0)} min</small></div><button class="text-button" data-recipe-open="${r.id}">View →</button><button class="text-button" data-unfavorite="${r.id}">Remove favourite</button></div>`).join("") : empty("Save a recipe with ♡ Favourite and it will appear here.");
+      if (target) target.innerHTML = listHtml;
+      const dashboardTarget = $("#dashboard-favourite-recipes-list");
+      if (dashboardTarget) dashboardTarget.innerHTML = rows.length ? rows.slice(0, 4).map(r => `<div class="compact-row"><span class="ingredient-symbol">${foodEmoji(r.title)}</span><div class="compact-info"><strong>${esc(r.title)}</strong><small>${r.rating ? `Your rating: ${r.rating}/5` : "Not rated yet"} · ${esc(r.total_min ?? 0)} min</small></div><button class="text-button" data-recipe-open="${r.id}">View →</button><button class="text-button" data-unfavorite="${r.id}">Remove</button></div>`).join("") : empty("No favourites yet. Open Find recipes and tap ♡ Favourite to build your collection.");
+      const count = $("#stat-favorites");
+      if (count) count.textContent = String(rows.length);
+      const feedbackById = new Map(feedback.map(item => [String(item.recipe_id), item]));
+      $$(`[data-favorite-toggle]`).forEach(button => {
+        const saved = feedbackById.get(button.dataset.favoriteToggle);
+        const active = Boolean(saved?.favorite);
         button.dataset.active = String(active); button.setAttribute("aria-pressed", String(active));
         button.textContent = active ? "♥ Favourite" : "♡ Favourite";
       });
-      rows.forEach(r => { const select = $(`[data-recipe-rating="${r.id}"]`); if (select && r.rating) select.value = String(r.rating); });
+      $$(`[data-recipe-rating]`).forEach(select => {
+        const saved = feedbackById.get(select.dataset.recipeRating);
+        select.value = saved?.rating ? String(saved.rating) : "";
+      });
     } catch (e) { if (target) target.innerHTML = empty(e.message); }
   }
   async function openRecipe(id, requestedServings = null) {
@@ -220,6 +231,7 @@
       showToast(`Plan #${result.plan_id} saved.`);
     } else {
       showPlan(RM.planHtml(result));
+      await loadFavorites();
       showToast(body.save ? "Plan generated, but nothing could be saved. See the notes below." : "Plan generated (not saved).", body.save ? "error" : "success");
     }
     loadPlans();
@@ -229,6 +241,7 @@
       const [plan, grocery] = await Promise.all([api(`/plans/${encodeURIComponent(id)}`), api(`/plans/${encodeURIComponent(id)}/grocery`)]);
       if (generated) { plan.warnings = generated.warnings; plan.average_daily_nutrition = generated.average_daily_nutrition; }
       showPlan(RM.planHtml(plan, { grocery }));
+      await loadFavorites();
     } catch (e) { showToast(e.message, "error"); }
   }
   async function swapMeal(btn) {
@@ -259,6 +272,9 @@
       await refreshFitness();
     } catch (e) { showToast(e.message,"error"); }
   }
+  function renderWorkoutRow(w) {
+    return `<div class="compact-row"><span class="ingredient-symbol">💪</span><div class="compact-info"><strong>${esc(w.workout_type)}</strong><small>${esc(w.workout_date)} · ${w.duration_min} min · ${esc(w.intensity)}</small></div><button class="text-button" data-delete-workout="${w.id}">Remove</button></div>`;
+  }
   async function refreshFitness() {
     try {
       const [diary, summary, workouts] = await Promise.all([api("/diary"),api("/nutrition/daily"),api("/workouts?limit=8")]);
@@ -267,7 +283,8 @@
       const micros = Object.entries(summary.consumed_micronutrients || {});
       if (micros.length) $("#fitness-summary").insertAdjacentHTML("beforeend",`<p class="field-help">Micronutrient values recorded: ${micros.map(([k,v])=>`${esc(k)} ${v}`).join(" · ")}. Facts retain source metadata in diary entries.</p>`);
       $("#food-diary-list").innerHTML = diary.length ? diary.map(d=>`<div class="compact-row"><span class="ingredient-symbol">${foodEmoji(d.item_name)}</span><div class="compact-info"><strong>${esc(d.item_name)}</strong><small>${esc(d.meal_type)} · ${d.servings} serving(s) · ${Math.round(d.kcal)} kcal</small></div><button class="text-button" data-delete-diary="${d.id}">Remove</button></div>`).join("") : empty("No food logged today yet.");
-      $("#workout-list").innerHTML = workouts.length ? workouts.map(w=>`<div class="compact-row"><span class="ingredient-symbol">💪</span><div class="compact-info"><strong>${esc(w.workout_type)}</strong><small>${esc(w.workout_date)} · ${w.duration_min} min · ${esc(w.intensity)}</small></div><button class="text-button" data-delete-workout="${w.id}">Remove</button></div>`).join("") : empty("No workouts logged yet.");
+      const workoutRows = workouts.map(renderWorkoutRow).join("");
+      $("#workout-list").innerHTML = workoutRows || empty("No workouts logged yet.");
     } catch(e) { showToast(e.message,"error"); }
   }
   async function showWorkoutFuel(phase) {
@@ -294,6 +311,10 @@
     if (authTab) { authScreen(authTab.dataset.authTab); return; }
     const pageBtn = event.target.closest("[data-page]");
     if (pageBtn) { event.preventDefault(); navigate(pageBtn.dataset.page); return; }
+    const snapshotPage = event.target.closest("[data-snapshot-page]");
+    if (snapshotPage) { navigate(snapshotPage.dataset.snapshotPage); return; }
+    const snapshotScroll = event.target.closest("[data-snapshot-scroll]");
+    if (snapshotScroll) { document.getElementById(snapshotScroll.dataset.snapshotScroll)?.scrollIntoView({behavior:"smooth", block:"start"}); return; }
     const recipeBtn = event.target.closest("[data-recipe-open]");
     if (recipeBtn) { openRecipe(recipeBtn.dataset.recipeOpen); return; }
     const rescaleBtn = event.target.closest("[data-rescale-recipe]");
@@ -321,8 +342,14 @@
     const delPlan = event.target.closest("[data-plan-delete]");
     if (delPlan) {
       if (!confirm("Delete this saved plan? Your pantry is not changed.")) return;
-      try { await api(`/plans/${delPlan.dataset.planDelete}`, { method: "DELETE" }); $("#plan-result").classList.add("hidden"); showToast("Plan deleted."); loadPlans(); }
-      catch (e) { showToast(e.message, "error"); }
+      try {
+        const deletedId = String(delPlan.dataset.planDelete);
+        await api(`/plans/${deletedId}`, { method: "DELETE" });
+        const openPlanBadge = $("#plan-result")?.querySelector(".small-badge");
+        if (openPlanBadge?.textContent.includes(`PLAN #${deletedId}`)) $("#plan-result").classList.add("hidden");
+        await Promise.all([loadPlans(), loadDashboard()]);
+        showToast("Saved plan deleted.");
+      } catch (e) { showToast(e.message, "error"); }
       return;
     }
     const cook = event.target.closest("[data-cook-meal]");
@@ -350,6 +377,11 @@
       return;
     }
     if (event.target.closest("[data-search-external]")) { loadRecipes({ external: true }); return; }
+  });
+  document.addEventListener("keydown", event => {
+    if ((event.key === "Enter" || event.key === " ") && event.target.matches("[data-snapshot-page], [data-snapshot-scroll]")) {
+      event.preventDefault(); event.target.click();
+    }
   });
   document.addEventListener("change", async event => {
     if (!event.target.matches("[data-recipe-rating]")) return;
@@ -427,30 +459,143 @@
   $("#preferences-form").addEventListener("submit", e => { e.preventDefault(); savePreferences($('button[type="submit"]',e.currentTarget)); });
   $("#recipe-modal").addEventListener("keydown", e => { if(e.key==="Escape") $("#recipe-modal").classList.add("hidden"); });
   document.addEventListener("keydown", e => { if(e.key==="Escape"){ $("#recipe-modal").classList.add("hidden"); $("#sidebar").classList.remove("open"); } });
-  $("#fitness-profile-form").addEventListener("submit", async event => {
-    event.preventDefault(); const body=formObject(event.currentTarget);
-    ["age"].forEach(k=>body[k]=asNumber(body[k])); ["height_cm","weight_kg","protein_g_per_kg"].forEach(k=>body[k]=asNumber(body[k]));
-    const result=await withBusy($('button[type="submit"]',event.currentTarget),()=>api("/fitness/profile",{method:"PUT",body:JSON.stringify(body)}),"Calculating…");
-    if(result){renderFitnessTargets(result.targets);showToast("Fitness targets saved.");}
-  });
-  $("#food-diary-form").addEventListener("submit",async event=>{
-    event.preventDefault();const body=formObject(event.currentTarget);["servings","kcal","protein_g","carbs_g","fat_g"].forEach(k=>body[k]=asNumber(body[k]));
-    const result=await withBusy($('button[type="submit"]',event.currentTarget),()=>api("/diary",{method:"POST",body:JSON.stringify(body)}),"Logging…");
-    if(result){event.currentTarget.reset();$("#diary-servings").value=1;await refreshFitness();showToast("Food logged as consumed.");}
-  });
-  $("#workout-form").addEventListener("submit",async event=>{
-    event.preventDefault();const body=formObject(event.currentTarget);body.duration_min=asNumber(body.duration_min);
-    const result=await withBusy($('button[type="submit"]',event.currentTarget),()=>api("/workouts",{method:"POST",body:JSON.stringify(body)}),"Saving…");
-    if(result){event.currentTarget.reset();$("#workout-duration").value=45;await Promise.all([refreshFitness(),loadGoalRecipes()]);showToast("Workout saved. Your activity log and meal ideas are refreshed.");}
-  });
-  $("#fitness-refresh").addEventListener("click",refreshFitness);
-  $("#pre-fuel").addEventListener("click",()=>showWorkoutFuel("pre").catch(e=>showToast(e.message,"error")));
-  $("#post-fuel").addEventListener("click",()=>showWorkoutFuel("post").catch(e=>showToast(e.message,"error")));
+  $("#fitness-profile-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
 
+    const body = formObject(event.currentTarget);
+
+    ["age"].forEach((key) => {
+      body[key] = asNumber(body[key]);
+    });
+
+    ["height_cm", "weight_kg", "protein_g_per_kg"].forEach((key) => {
+      body[key] = asNumber(body[key]);
+    });
+
+    const result = await withBusy(
+      $('button[type="submit"]', event.currentTarget),
+      () =>
+        api("/fitness/profile", {
+          method: "PUT",
+          body: JSON.stringify(body),
+        }),
+      "Calculating…"
+    );
+
+    if (result) {
+      renderFitnessTargets(result.targets);
+
+      // Refresh recommendations and nutrition totals immediately.
+      await Promise.all([loadGoalRecipes(), refreshFitness()]);
+
+      showToast(
+        "Fitness targets saved. Your meal ideas and nutrition summary are updated."
+      );
+    }
+  });
+
+  $("#food-diary-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const body = formObject(event.currentTarget);
+
+    ["servings", "kcal", "protein_g", "carbs_g", "fat_g"].forEach((key) => {
+      body[key] = asNumber(body[key]);
+    });
+
+    const result = await withBusy(
+      $('button[type="submit"]', event.currentTarget),
+      () =>
+        api("/diary", {
+          method: "POST",
+          body: JSON.stringify(body),
+        }),
+      "Logging…"
+    );
+
+    if (result) {
+      event.currentTarget.reset();
+      $("#diary-servings").value = 1;
+
+      await refreshFitness();
+
+      showToast("Food logged as consumed.");
+    }
+  });
+
+  $("#workout-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    // Capture the form before awaiting: event.currentTarget is cleared after the event callback returns.
+    const form = event.currentTarget;
+    const submitButton = $('button[type="submit"]', form);
+    const body = formObject(form);
+    body.duration_min = asNumber(body.duration_min);
+
+    const result = await withBusy(
+      submitButton,
+      () => api("/workouts", {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
+      "Saving…"
+    );
+
+    if (!result) return;
+
+    form.reset();
+    $("#workout-duration").value = 45;
+
+    // Render the server-confirmed workout immediately.
+    const list = $("#workout-list");
+    if (list && result.id != null) {
+      const existing = list.querySelector(`[data-delete-workout="${result.id}"]`);
+      if (!existing) {
+        if (list.querySelector(".empty-state, .empty-inline")) list.innerHTML = "";
+        list.insertAdjacentHTML("afterbegin", renderWorkoutRow(result));
+      }
+    }
+
+    // Refresh from the API after rendering so the log remains synchronized with the database.
+    await refreshFitness();
+    await loadGoalRecipes();
+    showToast("Workout saved. Your activity log and meal ideas are refreshed.");
+  });
+
+  $("#fitness-refresh").addEventListener("click", refreshFitness);
+
+  $("#pre-fuel").addEventListener("click", () => {
+    showWorkoutFuel("pre").catch((error) =>
+      showToast(error.message, "error")
+    );
+  });
+
+  $("#post-fuel").addEventListener("click", () => {
+    showWorkoutFuel("post").catch((error) =>
+      showToast(error.message, "error")
+    );
+  });
+  
   document.addEventListener("click",async event=>{
     const diary=event.target.closest("[data-delete-diary]"); if(diary){try{await api(`/diary/${diary.dataset.deleteDiary}`,{method:"DELETE"});await refreshFitness();showToast("Diary entry removed.");}catch(e){showToast(e.message,"error");}return;}
     const workout=event.target.closest("[data-delete-workout]"); if(workout){try{await api(`/workouts/${workout.dataset.deleteWorkout}`,{method:"DELETE"});await refreshFitness();showToast("Workout removed.");}catch(e){showToast(e.message,"error");}return;}
     const recipe=event.target.closest("[data-import-recipe]"); if(recipe){try{const data=await api(`/recipes/import?name=${encodeURIComponent(recipe.dataset.importRecipe)}`,{method:"POST"});showToast(`Imported recipe ID(s): ${data.imported_recipe_ids.join(", ")}. Nutrition may be incomplete.`);}catch(e){showToast(e.message,"error");}return;}
   });
+  $("#toggle-password")?.addEventListener("click", () => {
+    const input = $("#auth-password");
+    const button = $("#toggle-password");
+    if (!input || !button) return;
+
+    const showPassword = input.type === "password";
+    input.type = showPassword ? "text" : "password";
+    button.innerHTML = showPassword
+      ? `<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"/><path d="M9.9 5.2A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a16.6 16.6 0 0 1-4 4.8"/><path d="M6.6 6.6C3.6 8.5 2 12 2 12s3.6 7 10 7a10.8 10.8 0 0 0 4-.8"/></svg>`
+      : `<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>`;
+    const label = showPassword ? "Hide password" : "Show password";
+    button.setAttribute("aria-label", label);
+    button.setAttribute("title", label);
+    button.setAttribute("aria-pressed", String(showPassword));
+  });
+
   restoreSession();
 })();

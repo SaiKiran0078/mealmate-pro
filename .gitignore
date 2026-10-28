@@ -13,3 +13,16 @@ htmlcov/
 .idea/
 .vscode/
 .DS_Store
+# Additional virtual environments
+env/
+
+# Environment files (keep the example template)
+.env.*
+!.env.example
+
+# Additional SQLite database formats
+*.sqlite
+*.sqlite3
+
+# Windows Explorer
+Thumbs.db

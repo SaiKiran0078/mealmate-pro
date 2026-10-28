@@ -123,7 +123,7 @@
   /* ---------- meal plans ---------- */
   function savedPlanRowHtml(p) {
     const label = `${plural(p.days, "day")} from ${fmtDate(p.start_date)}`;
-    return `<div class="saved-plan-row"><div><strong>${esc(label)}</strong><small>${esc(plural(p.meals, "meal"))} · ${esc(p.cooked)} cooked · ${esc(p.servings)} serving${p.servings === 1 ? "" : "s"}</small></div><button data-plan-open="${esc(p.id)}">Open →</button></div>`;
+    return `<div class="saved-plan-row"><div><strong>${esc(label)}</strong><small>${esc(plural(p.meals, "meal"))} · ${esc(p.cooked)} cooked · ${esc(p.servings)} serving${p.servings === 1 ? "" : "s"}</small></div><div class="saved-plan-actions"><button data-plan-open="${esc(p.id)}">Open →</button><button class="text-button danger" data-plan-delete="${esc(p.id)}" aria-label="Delete saved plan from ${esc(label)}">Delete</button></div></div>`;
   }
 
   function mealRowHtml(m, planId) {
@@ -131,10 +131,11 @@
     const hasIds = planId != null && m.meal_id != null;
     const state = m.cooked ? `<span class="small-badge">COOKED</span>`
       : hasIds ? `<button class="text-button" data-cook-meal="${esc(m.meal_id)}" data-plan-id="${esc(planId)}">Mark cooked</button><button class="text-button" data-swap-meal="${esc(m.meal_id)}" data-plan-id="${esc(planId)}" data-meal-type="${esc(m.meal_type)}">Swap</button>` : "";
+    const feedback = m.recipe_id != null ? `<div class="recipe-feedback-controls plan-recipe-feedback"><button class="text-button" data-favorite-toggle="${esc(m.recipe_id)}" data-active="false" aria-pressed="false">♡ Favourite</button><label class="recipe-rating">Rate <select data-recipe-rating="${esc(m.recipe_id)}" aria-label="Rate ${esc(m.title)}"><option value="">—</option><option value="1">★ 1</option><option value="2">★ 2</option><option value="3">★ 3</option><option value="4">★ 4</option><option value="5">★ 5</option></select></label></div>` : "";
     const missing = (m.missing || []).length ? `<small class="plan-missing">Need: ${esc(m.missing.join(", "))}</small>` : "";
     const photo = mealPhoto(m.title, m.meal_type);
     const completed = Boolean(m.cooked);
-    return `<article class="plan-meal ${completed ? "is-cooked" : ""}"><div class="plan-meal-art"><img class="plan-meal-photo" src="${photo}" alt="Food inspiration for ${esc(m.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.classList.add('is-visible')"><span class="plan-meal-emoji ${completed ? "" : "photo-fallback"}" aria-hidden="true">${foodEmoji(m.title)}</span><span class="plan-meal-type">${esc(m.meal_type)}</span>${completed ? `<span class="cooked-ribbon">✓ Cooked</span>` : `<span class="meal-photo-shade"></span>`}</div><div class="plan-meal-content"><button class="link-title" data-recipe-open="${esc(m.recipe_id)}"><strong>${esc(m.title)}</strong><span class="meal-open-arrow" aria-hidden="true">↗</span></button><div class="plan-meal-metrics"><span><b>◷</b>${esc(m.total_min ?? 0)} min</span><span><b>⚡</b>${num(n.kcal)} kcal</span><span><b>↗</b>${esc(n.protein_g ?? 0)} g protein</span></div>${missing}<span class="plan-meal-actions">${state}</span></div></article>`;
+    return `<article class="plan-meal ${completed ? "is-cooked" : ""}"><div class="plan-meal-art"><img class="plan-meal-photo" src="${photo}" alt="Food inspiration for ${esc(m.title)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.classList.add('is-visible')"><span class="plan-meal-emoji ${completed ? "" : "photo-fallback"}" aria-hidden="true">${foodEmoji(m.title)}</span><span class="plan-meal-type">${esc(m.meal_type)}</span>${completed ? `<span class="cooked-ribbon">✓ Cooked</span>` : `<span class="meal-photo-shade"></span>`}</div><div class="plan-meal-content"><button class="link-title" data-recipe-open="${esc(m.recipe_id)}"><strong>${esc(m.title)}</strong><span class="meal-open-arrow" aria-hidden="true">↗</span></button><div class="plan-meal-metrics"><span><b>◷</b>${esc(m.total_min ?? 0)} min</span><span><b>⚡</b>${num(n.kcal)} kcal</span><span><b>↗</b>${esc(n.protein_g ?? 0)} g protein</span></div>${missing}<span class="plan-meal-actions">${state}</span>${feedback}</div></article>`;
   }
 
   /* plan = response of POST /plans/generate or GET /plans/{id}; opts.grocery overrides plan.grocery_list */

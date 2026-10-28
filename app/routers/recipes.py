@@ -165,6 +165,19 @@ def create_recipe(body: RecipeIn, user: CurrentUser, conn: Conn) -> dict:
     return recipe_detail(recipe_repo.get_recipe(conn, recipe_id, user.id))  # type: ignore[arg-type]
 
 
+@router.get("/feedback")
+def recipe_feedback(user: CurrentUser, conn: Conn) -> list[dict]:
+    """Return the current user's saved favourite/rating state for recipe controls."""
+    rows = conn.execute(
+        "SELECT recipe_id, is_favorite, rating FROM recipe_feedback WHERE user_id = ?",
+        (user.id,),
+    ).fetchall()
+    return [
+        {"recipe_id": row["recipe_id"], "favorite": bool(row["is_favorite"]), "rating": row["rating"]}
+        for row in rows
+    ]
+
+
 @router.get("/favorites")
 def favorite_recipes(user: CurrentUser, conn: Conn) -> list[dict]:
     """List the current user's favourited recipes with their personal ratings."""
