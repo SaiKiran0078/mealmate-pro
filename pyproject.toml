@@ -1,0 +1,22 @@
+[project]
+name = "mealmate-pro"
+version = "1.0.0"
+description = "Pantry-aware meal planner: turns the food you already have into daily and weekly plans with guided recipes."
+requires-python = ">=3.10"
+readme = "README.md"
+license = { text = "MIT" }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "B"]
+ignore = [
+    "B008",  # FastAPI's Depends()/Query() in defaults is the intended style
+    "E501",  # line length is a style choice here, not a bug
+]

@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: mealmate-pro
+    runtime: docker
+    plan: starter
+    healthCheckPath: /health
+    envVars:
+      - key: JWT_SECRET
+        generateValue: true
+      - key: MEALMATE_DB
+        value: /data/mealmate.db
+      - key: SEED_ON_STARTUP
+        value: "1"
+    disk:
+      name: mealmate-data
+      mountPath: /data
+      sizeGB: 1

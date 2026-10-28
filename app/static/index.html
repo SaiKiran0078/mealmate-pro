@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#173f35">
+  <meta name="description" content="MealMate Pro — plan smarter, waste less, eat better.">
+  <title>MealMate Pro — Your kitchen, organized</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div id="toast-region" class="toast-region" aria-live="polite"></div>
+  <div id="auth-screen" class="auth-screen">
+    <section class="auth-visual">
+      <div class="brand brand-light"><span class="brand-mark">✳</span><span>MealMate<span class="brand-pro"> Pro</span></span></div>
+      <div class="auth-hero">
+        <span class="eyebrow light-eyebrow">A LITTLE MORE MINDFUL. A LOT MORE DELICIOUS.</span>
+        <h1>Your kitchen.<br><em>Your rhythm.</em></h1>
+        <p>Make the most of what you have, discover your next favourite meal, and plan your week with confidence.</p>
+        <div class="auth-benefits">
+          <div><span>✓</span> Waste less, cook more</div>
+          <div><span>✓</span> Plan around your pantry</div>
+          <div><span>✓</span> Keep your week delicious</div>
+        </div>
+      </div>
+      <div class="visual-footer">GOOD FOOD STARTS AT HOME <span>✳</span></div>
+    </section>
+    <section class="auth-panel">
+      <div class="auth-mobile-brand brand"><span class="brand-mark">✳</span><span>MealMate<span class="brand-pro"> Pro</span></span></div>
+      <div class="auth-card">
+        <div class="auth-tabs">
+          <button class="auth-tab active" data-auth-tab="login">Sign in</button>
+          <button class="auth-tab" data-auth-tab="register">Create account</button>
+        </div>
+        <div class="auth-heading">
+          <span class="eyebrow">WELCOME TO YOUR KITCHEN</span>
+          <h2 id="auth-title">Good to see you again.</h2>
+          <p id="auth-subtitle">Sign in to pick up where your appetite left off.</p>
+        </div>
+        <form id="auth-form">
+          <label for="auth-email">Email address</label>
+          <input id="auth-email" type="email" autocomplete="email" placeholder="you@example.com" required maxlength="254">
+          <label for="auth-password">Password</label>
+          <input id="auth-password" type="password" autocomplete="current-password" placeholder="At least 8 characters" required minlength="8" maxlength="128">
+          <button id="auth-submit" class="btn btn-primary btn-full" type="submit">Sign in <span>→</span></button>
+        </form>
+        <p class="auth-switch" id="auth-switch">New to MealMate? <button type="button" data-auth-tab="register">Create an account</button></p>
+        <p class="auth-privacy">Your kitchen data stays connected to your account.</p>
+      </div>
+      <div class="auth-panel-footer">MADE FOR EVERYDAY COOKING <span>✳</span></div>
+    </section>
+  </div>
+
+  <div id="app-shell" class="app-shell hidden">
+    <aside class="sidebar" id="sidebar">
+      <a href="#" class="brand sidebar-brand" data-page="dashboard"><span class="brand-mark">✳</span><span>MealMate<span class="brand-pro"> Pro</span></span></a>
+      <div class="sidebar-label">YOUR KITCHEN</div>
+      <nav class="side-nav">
+        <button class="nav-item active" data-page="dashboard"><span class="nav-icon">⌂</span> Overview</button>
+        <button class="nav-item" data-page="pantry"><span class="nav-icon">▤</span> My pantry <span id="pantry-nav-count" class="nav-count">0</span></button>
+        <button class="nav-item" data-page="recipes"><span class="nav-icon">♨</span> Find recipes</button>
+        <button class="nav-item" data-page="plans"><span class="nav-icon">▦</span> Meal planner</button>
+        <button class="nav-item" data-page="fitness"><span class="nav-icon">✚</span> Fitness & nutrition</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="sidebar-tip"><span class="tip-icon">✦</span><strong>A little tip</strong><p>Use ingredients that expire soon first. Your future self (and your wallet) will thank you.</p></div>
+        <button class="nav-item" data-page="preferences"><span class="nav-icon">⚙</span> Preferences</button>
+        <button class="profile-button" id="profile-button"><span class="avatar" id="avatar-initial">M</span><span class="profile-text"><strong id="profile-email">My account</strong><small>Personal kitchen</small></span><span class="profile-dots">•••</span></button>
+        <button class="logout-button" id="logout-button">↪ <span>Sign out</span></button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <button class="mobile-menu" id="mobile-menu" aria-label="Open navigation">☰</button>
+        <div class="breadcrumb"><span>MEALMATE PRO</span><span class="crumb-divider">/</span><strong id="current-section">Overview</strong></div>
+        <div class="topbar-right"><span class="today-label" id="today-label"></span><span class="top-avatar" id="top-avatar">M</span></div>
+      </header>
+      <div class="page-wrap">
+        <section class="page active" id="page-dashboard">
+          <div class="welcome-row">
+            <div><span class="eyebrow">YOUR KITCHEN, AT A GLANCE</span><h1 id="welcome-title">Let's make something good.</h1><p class="page-subtitle">A little planning goes a long way. Here's what's cooking today.</p></div>
+            <button class="btn btn-primary" data-page="plans">＋ Plan my week <span>→</span></button>
+          </div>
+          <div class="hero-banner">
+            <div class="hero-copy"><span class="pill pill-light">YOUR DAILY INSPIRATION</span><h2>Good meals.<br>Less guesswork.</h2><p>Start with what you already have, and let the ideas follow.</p><button class="btn btn-cream" data-page="recipes">Explore recipes <span>→</span></button></div>
+            <div class="hero-art" aria-hidden="true"><div class="art-sun"></div><div class="art-plate"><div class="art-food">🥗</div></div><div class="art-leaf leaf-one">⌁</div><div class="art-leaf leaf-two">⌁</div><span class="art-spark spark-one">✳</span><span class="art-spark spark-two">✦</span></div>
+            <div class="hero-caption">FRESH IDEAS, RIGHT AT HOME</div>
+          </div>
+          <div class="section-heading"><div><span class="eyebrow">THE ESSENTIALS</span><h2>Your kitchen snapshot</h2></div><button class="text-button" data-page="pantry">Manage pantry →</button></div>
+          <div class="stats-grid">
+            <article class="stat-card"><div class="stat-icon green-icon">▤</div><span class="stat-label">Pantry ingredients</span><strong class="stat-value" id="stat-ingredients">—</strong><span class="stat-note" id="stat-ingredients-note">Ingredients on hand</span></article>
+            <article class="stat-card"><div class="stat-icon orange-icon">◷</div><span class="stat-label">Expiring soon</span><strong class="stat-value" id="stat-expiring">—</strong><span class="stat-note" id="stat-expiring-note">Worth using in 3 days</span></article>
+            <article class="stat-card"><div class="stat-icon purple-icon">♨</div><span class="stat-label">Ready to cook</span><strong class="stat-value" id="stat-recipes">—</strong><span class="stat-note" id="stat-recipes-note">Recipes you can cook right now</span></article>
+            <article class="stat-card"><div class="stat-icon blue-icon">▦</div><span class="stat-label">Saved plans</span><strong class="stat-value" id="stat-plans">—</strong><span class="stat-note">Plans ready when you are</span></article>
+          </div>
+          <div class="dashboard-columns">
+            <section class="content-card">
+              <div class="card-heading"><div><span class="eyebrow">MAKE IT COUNT</span><h3>Use these soon</h3></div><span class="small-badge">NEXT 3 DAYS</span></div>
+              <div id="expiring-list" class="compact-list"><div class="loading-line"></div></div>
+            </section>
+            <section class="content-card">
+              <div class="card-heading"><div><span class="eyebrow">A LITTLE INSPIRATION</span><h3>Recipe picks for you</h3></div><button class="text-button" data-page="recipes">View all →</button></div>
+              <div id="dashboard-recipes" class="mini-recipe-list"><div class="loading-line"></div></div>
+            </section>
+          </div>
+          <div class="dashboard-columns">
+            <section class="content-card"><div class="card-heading"><div><span class="eyebrow">TODAY</span><h3>On the menu</h3></div><button class="text-button" data-page="plans">Meal planner →</button></div><div id="today-plan" class="compact-list"><div class="loading-line"></div></div></section>
+            <section class="content-card"><div class="card-heading"><div><span class="eyebrow">TODAY</span><h3>Planned vs eaten</h3></div><button class="text-button" data-page="fitness">Log food →</button></div><div id="today-nutrition" class="fitness-targets"><div class="loading-line"></div></div></section>
+          </div>
+          <div class="bottom-cta"><div class="cta-icon">✳</div><div><strong>Not sure what to cook?</strong><p>Tell MealMate what's in your pantry and get ideas made for you.</p></div><button class="btn btn-outline" data-page="recipes">Find my next meal →</button></div>
+        </section>
+
+        <section class="page" id="page-pantry">
+          <div class="page-heading-row"><div><span class="eyebrow">KNOW WHAT YOU HAVE</span><h1>My pantry</h1><p class="page-subtitle">Keep track of ingredients, quantities, and expiry dates.</p></div><button class="btn btn-primary" id="show-pantry-form">＋ Add ingredient</button></div>
+          <div class="notice notice-warm"><span>✦</span><div><strong>Make every ingredient count.</strong><p>Items nearing expiry are highlighted so you can use them before they go to waste.</p></div></div>
+          <form id="pantry-form" class="content-card form-card hidden">
+            <div class="card-heading"><div><span class="eyebrow">NEW INGREDIENT</span><h3>Add to your pantry</h3></div><button type="button" class="icon-button" id="hide-pantry-form" aria-label="Close">×</button></div>
+            <div class="form-grid">
+              <div class="field"><label for="pantry-ingredient">Ingredient name</label><input id="pantry-ingredient" list="ingredient-options" autocomplete="off" required maxlength="80" placeholder="e.g. Tomatoes"><datalist id="ingredient-options"></datalist></div>
+              <div class="field"><label for="pantry-amount">Quantity</label><input id="pantry-amount" type="number" min="0.01" step="any" required placeholder="e.g. 500"></div>
+              <div class="field"><label for="pantry-unit">Unit</label><select id="pantry-unit"><option value="">Default unit</option><option>g</option><option>kg</option><option>ml</option><option>l</option><option>tsp</option><option>tbsp</option><option>cup</option><option>pcs</option></select></div>
+              <div class="field"><label for="pantry-expiry">Expiry date <span class="optional">(optional)</span></label><input id="pantry-expiry" type="date"></div>
+            </div>
+            <div class="form-actions"><button type="button" class="btn btn-ghost" id="cancel-pantry">Cancel</button><button type="submit" class="btn btn-primary">Save ingredient →</button></div>
+          </form>
+          <div class="section-heading compact-section-heading"><div><h2>Ingredients on hand</h2><p class="muted" id="pantry-count-label">Your current kitchen stock</p></div><div class="search-box"><span>⌕</span><input id="pantry-search" placeholder="Search pantry..." aria-label="Search pantry"></div></div>
+          <div id="pantry-items" class="pantry-grid"><div class="loading-line"></div></div>
+          <section class="content-card pantry-recommendations">
+            <div class="card-heading"><div><span class="eyebrow">COOK WITH WHAT YOU HAVE</span><h3>Recipes matching your pantry</h3><p class="muted">You don't need every ingredient. We'll show what you have and what's missing.</p></div><button class="text-button" id="refresh-pantry-recipes">Refresh ideas ↻</button></div>
+            <div id="pantry-recipe-results" class="recipe-grid"><div class="loading-line"></div></div>
+          </section>
+        </section>
+
+        <section class="page" id="page-recipes">
+          <div class="page-heading-row"><div><span class="eyebrow">INSPIRATION, SERVED DAILY</span><h1>Find your next favourite</h1><p class="page-subtitle">Recipes that fit your pantry, your schedule, and your taste.</p></div></div>
+          <div class="recipe-controls content-card">
+            <div class="search-box recipe-search"><span>⌕</span><input id="recipe-search" placeholder="Try: paneer, eggs and spinach, high protein breakfast, under 500 calories…" aria-label="Search recipes"></div>
+            <select id="recipe-meal-filter" aria-label="Filter by meal"><option value="">All meal types</option><option value="breakfast">Breakfast</option><option value="lunch">Lunch</option><option value="dinner">Dinner</option><option value="snack">Snack</option></select>
+            <select id="recipe-time-filter" aria-label="Filter by preparation time"><option value="">Any cooking time</option><option value="15">Under 15 min</option><option value="30">Under 30 min</option><option value="45">Under 45 min</option><option value="60">Under 60 min</option></select>
+            <select id="recipe-sort" aria-label="Sort recipes"><option value="relevance">Best match</option><option value="pantry">Most from my pantry</option><option value="time">Quickest</option><option value="calories">Fewest calories</option><option value="protein">Most protein</option></select>
+            <label class="check-filter"><input type="checkbox" id="cookable-filter"> Only what I can cook now</label>
+            <label class="check-filter"><input type="checkbox" id="include-online-recipes"> Also search online recipes (TheMealDB)</label>
+            <p class="field-help">Online results appear separately. Import a recipe to save it in your collection; nutrition may be incomplete until its ingredients are matched to known foods.</p>
+            <button class="btn btn-primary" id="apply-recipe-filters">Find recipes</button>
+          </div>
+          <div class="section-heading"><div><span class="eyebrow">MADE FOR YOUR KITCHEN</span><h2 id="recipe-results-title">Suggested for you</h2></div><span class="muted" id="recipe-results-count"></span></div>
+          <div id="recipe-grid"><div class="loading-line"></div></div>
+          <section class="content-card saved-favourites-card">
+            <div class="card-heading"><div><span class="eyebrow">YOUR COLLECTION</span><h3>Favourite recipes</h3></div><button class="text-button" id="refresh-favourites">Refresh ↻</button></div>
+            <div id="favourite-recipes-list" class="compact-list"><div class="empty-inline">Your saved favourites will appear here.</div></div>
+          </section>
+        </section>
+
+        <section class="page" id="page-plans">
+          <div class="page-heading-row"><div><span class="eyebrow">A WEEK THAT WORKS FOR YOU</span><h1>Meal planner</h1><p class="page-subtitle">Build a practical plan around your preferences and ingredients.</p></div></div>
+          <div class="planner-layout">
+            <form id="plan-form" class="content-card planner-form">
+              <div class="card-heading"><div><span class="eyebrow">LET'S GET PLANNING</span><h3>Create a meal plan</h3></div><span class="planner-mark">▦</span></div>
+              <div class="field"><label for="plan-days">Plan length</label><select id="plan-days"><option value="1">Today · 1 day</option><option value="3">3 days</option><option value="7" selected>One week · 7 days</option><option value="14">Two weeks · 14 days</option></select></div>
+              <div class="field"><label>Meals to include</label><p class="field-help">Select every meal you want MealMate to plan each day. Choose at least one; for example, select breakfast, lunch and dinner for a full-day plan.</p><div class="meal-checkboxes"><label><input type="checkbox" value="breakfast" checked> Breakfast</label><label><input type="checkbox" value="lunch" checked> Lunch</label><label><input type="checkbox" value="dinner" checked> Dinner</label><label><input type="checkbox" value="snack"> Snacks</label></div></div>
+              <div class="form-grid two-col">
+                <div class="field"><label for="plan-servings">How many people?</label><input id="plan-servings" type="number" min="1" max="12" value="1" required><small class="field-help">Ingredient amounts will be adjusted for everyone eating.</small></div>
+                <div class="field"><label for="plan-cooking-time">Cooking time</label><select id="plan-cooking-time"><option value="any">Any cooking time</option><option value="quick">Quick meals · up to 30 minutes</option><option value="easy">Simple meals · up to 45 minutes</option></select><small class="field-help">Choose meals that fit your day.</small></div>
+              </div>
+              <div class="field"><label for="plan-pantry-mode">How should we use your pantry?</label><select id="plan-pantry-mode"><option value="pantry_first" selected>Use what I have first</option><option value="balanced">Use pantry ingredients and suggest a few new dishes</option></select><small class="field-help">MealMate checks your available quantities across all selected days, avoids counting the same ingredients twice, and lists anything you still need.</small></div>
+              <div class="field"><label for="plan-diet">Diet preference</label><p class="field-help">Choose a preference to filter recipe suggestions, or keep your saved preference.</p><select id="plan-diet"><option value="">Use my preference</option><option value="vegetarian">Vegetarian</option><option value="vegan">Vegan</option><option value="gluten_free">Gluten-free</option><option value="non_vegetarian">Non-vegetarian</option></select></div>
+              <label class="toggle-row"><input type="checkbox" id="plan-save" checked><span class="toggle"></span><span><strong>Save this plan</strong><small>Keep it in your saved plans</small></span></label>
+              <p class="field-help planner-howto">Choose the days and meals you want, tell us how many people are eating, and pick your food preference. MealMate will build a varied plan from your pantry, use food that needs eating soon, adjust ingredient amounts, and show recipe instructions, nutrition estimates, and anything missing from your shopping list.</p><button type="submit" class="btn btn-primary btn-full">Generate my plan <span>→</span></button>
+            </form>
+            <div class="planner-aside">
+              <div class="planner-promo"><span class="pill pill-light">A SMARTER ROUTINE</span><h2>Less planning.<br>More enjoying.</h2><p>MealMate helps turn ingredients you already own into a plan you can actually follow.</p><div class="promo-illustration">🥑 🥕 🍋</div></div>
+              <div class="content-card saved-plans-card"><div class="card-heading"><div><span class="eyebrow">YOUR HISTORY</span><h3>Saved plans</h3></div><span class="small-badge" id="saved-plan-count">0 PLANS</span></div><div id="saved-plans-list" class="compact-list"><div class="loading-line"></div></div></div>
+            </div>
+          </div>
+          <div id="plan-result" class="content-card plan-result hidden" aria-live="polite"></div>
+          <section class="content-card pantry-recommendations plan-pantry-picks"><div class="card-heading"><div><span class="eyebrow">START WITH YOUR PANTRY</span><h3>More dishes for your ingredients</h3><p class="muted">Explore extra ideas using what you have, including recipes that need only a few more ingredients.</p></div><button class="text-button" id="refresh-plan-pantry">Refresh ideas ↻</button></div><div id="plan-pantry-results" class="recipe-grid"><p class="field-help">Your pantry-based recipe ideas will appear here.</p></div></section>
+        </section>
+
+        <section class="page" id="page-fitness">
+          <div class="page-heading-row"><div><span class="eyebrow">FUEL YOUR EVERYDAY</span><h1>Fitness & nutrition</h1><p class="page-subtitle">Set a goal, get estimated nutrition targets, find meals that fit, log food and workouts, and review your progress. Nutrition and calorie figures are estimates.</p></div></div>
+          <div class="fitness-grid">
+            <section class="content-card">
+              <div class="card-heading"><div><span class="eyebrow">YOUR GOAL</span><h3>Personal fitness profile</h3></div><span class="small-badge">ESTIMATES</span></div>
+              <form id="fitness-profile-form">
+                <div class="form-grid two-col">
+                  <div class="field"><label for="fit-age">Age</label><input id="fit-age" name="age" type="number" min="13" max="100" value="25" required></div>
+                  <div class="field"><label for="fit-sex">Calculation profile</label><select id="fit-sex" name="sex"><option value="female">Female</option><option value="male" selected>Male</option><option value="other">Other / midpoint</option></select></div>
+                  <div class="field"><label for="fit-height">Height (cm)</label><input id="fit-height" name="height_cm" type="number" min="100" max="250" step="0.1" value="175" required></div>
+                  <div class="field"><label for="fit-weight">Weight (kg)</label><input id="fit-weight" name="weight_kg" type="number" min="25" max="350" step="0.1" value="70" required></div>
+                  <div class="field"><label for="fit-activity">Activity level</label><select id="fit-activity" name="activity_level"><option value="sedentary">Sedentary</option><option value="light">Light</option><option value="moderate" selected>Moderate</option><option value="active">Active</option><option value="very_active">Very active</option></select></div>
+                  <div class="field"><label for="fit-goal">Goal</label><select id="fit-goal" name="goal"><option value="fat_loss">Fat loss</option><option value="muscle_gain">Muscle gain</option><option value="maintenance" selected>Maintenance</option><option value="general_health">General health</option></select></div>
+                  <div class="field"><label for="fit-protein">Protein target (g/kg)</label><input id="fit-protein" name="protein_g_per_kg" type="number" min="0.8" max="2.5" step="0.1" value="1.6" required></div>
+                </div>
+                <div class="form-actions"><button type="submit" class="btn btn-primary">Calculate & save targets →</button></div>
+              </form>
+              <div id="fitness-targets" class="fitness-targets"><p class="muted">Save your profile to calculate estimated targets.</p></div>
+              <p class="field-help">Save your profile to estimate daily energy and protein targets. After that, use goal-based recipe suggestions and your food diary to compare planned intake with what you actually eat. Estimates are not medical advice.</p>
+            </section>
+            <section class="content-card">
+              <div class="card-heading"><div><span class="eyebrow">ACTUAL INTAKE</span><h3>Food diary</h3></div><span class="small-badge">CONSUMED</span></div>
+              <form id="food-diary-form">
+                <div class="field"><label for="diary-name">Food or meal</label><input id="diary-name" name="item_name" required maxlength="120" placeholder="e.g. Oats with milk"></div>
+                <div class="form-grid two-col">
+                  <div class="field"><label for="diary-meal">Meal</label><select id="diary-meal" name="meal_type"><option>breakfast</option><option>lunch</option><option>dinner</option><option>snack</option></select></div>
+                  <div class="field"><label for="diary-servings">Servings</label><input id="diary-servings" name="servings" type="number" min="0.1" max="50" step="0.1" value="1"></div>
+                  <div class="field"><label for="diary-kcal">Calories (kcal)</label><input id="diary-kcal" name="kcal" type="number" min="0" value="0"></div>
+                  <div class="field"><label for="diary-protein">Protein (g)</label><input id="diary-protein" name="protein_g" type="number" min="0" value="0"></div>
+                  <div class="field"><label for="diary-carbs">Carbs (g)</label><input id="diary-carbs" name="carbs_g" type="number" min="0" value="0"></div>
+                  <div class="field"><label for="diary-fat">Fat (g)</label><input id="diary-fat" name="fat_g" type="number" min="0" value="0"></div>
+                </div>
+                <div class="form-actions"><button type="submit" class="btn btn-primary">Log food consumed →</button></div>
+              </form>
+              <div class="card-heading fitness-subheading"><div><span class="eyebrow">TODAY</span><h3>Consumed vs planned</h3></div><button type="button" class="text-button" id="fitness-refresh">Refresh →</button></div>
+              <div id="fitness-summary" class="fitness-targets"></div><div id="food-diary-list" class="compact-list"></div>
+            </section>
+            <section class="content-card">
+              <div class="card-heading"><div><span class="eyebrow">MOVE WITH PURPOSE</span><h3>Workout log</h3></div></div>
+              <form id="workout-form">
+                <div class="form-grid two-col">
+                  <div class="field"><label for="workout-type">Workout</label><input id="workout-type" name="workout_type" required maxlength="80" placeholder="Strength training"></div>
+                  <div class="field"><label for="workout-duration">Duration (min)</label><input id="workout-duration" name="duration_min" type="number" min="1" max="1440" value="45" required></div>
+                  <div class="field"><label for="workout-intensity">Intensity</label><select id="workout-intensity" name="intensity"><option>light</option><option selected>moderate</option><option>vigorous</option></select></div>
+                  <div class="field"><label for="workout-notes">Notes</label><input id="workout-notes" name="notes" maxlength="1000" placeholder="Exercises, sets, notes"></div>
+                </div><div class="form-actions"><button type="submit" class="btn btn-primary">Save workout →</button></div>
+              </form><div id="workout-list" class="compact-list"></div>
+              <div class="card-heading fitness-subheading"><div><span class="eyebrow">FUEL AROUND TRAINING</span><h3>Pre / post-workout ideas</h3></div></div>
+              <div class="fitness-actions"><button type="button" class="btn btn-outline" id="pre-fuel">Pre-workout ideas</button><button type="button" class="btn btn-outline" id="post-fuel">Post-workout ideas</button></div><div id="workout-fuel-results" class="compact-list"></div>
+            </section>
+            <section class="content-card">
+              <div class="card-heading"><div><span class="eyebrow">GOAL-BASED FOOD IDEAS</span><h3>Recipes to help meet your targets</h3></div><button type="button" class="text-button" id="refresh-goal-recipes">Refresh ideas ↻</button></div>
+              <p class="field-help">Suggestions use the goal and targets saved above, prioritising recipes with known nutrition. Per-serving figures are estimates; recipes with incomplete ingredient data are labelled.</p>
+              <div id="goal-recipe-results" class="compact-list"><p class="field-help">Save your fitness profile to get tailored meal ideas.</p></div>
+            </section>
+          </div>
+        </section>
+
+        <section class="page" id="page-preferences">
+          <div class="page-heading-row"><div><span class="eyebrow">MAKE IT YOURS</span><h1>Your preferences</h1><p class="page-subtitle">A few details help MealMate make more useful suggestions.</p></div></div>
+          <form id="preferences-form" class="content-card preferences-card">
+            <div class="card-heading"><div><span class="eyebrow">YOUR PERSONAL KITCHEN</span><h3>Food & household</h3></div><span class="preferences-icon">⚙</span></div>
+            <div class="field"><label for="pref-diet">Diet preference</label><select id="pref-diet"><option value="">No specific preference</option><option value="vegetarian">Vegetarian</option><option value="vegan">Vegan</option><option value="gluten_free">Gluten-free</option><option value="non_vegetarian">Non-vegetarian</option></select><span class="field-help">We'll use this when suggesting recipes and creating plans.</span></div>
+            <div class="form-grid two-col">
+              <div class="field"><label for="pref-kcal">Daily calorie target</label><input id="pref-kcal" type="number" min="800" max="6000" step="50" placeholder="e.g. 2000"><span class="field-help">Optional target between 800 and 6,000 kcal.</span></div>
+              <div class="field"><label for="pref-household">Household size</label><input id="pref-household" type="number" min="1" max="12" value="1" required><span class="field-help">How many people are you usually cooking for?</span></div>
+            </div>
+            <div class="form-actions"><button type="submit" class="btn btn-primary">Save preferences →</button></div>
+          </form>
+        </section>
+      </div>
+      <footer class="app-footer"><span>✳ MealMate Pro</span><span>Plan smarter. Waste less. Eat well.</span></footer>
+    </main>
+  </div>
+
+  <div id="recipe-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-backdrop" data-close-modal></div><div class="modal-panel"><button class="modal-close" data-close-modal aria-label="Close">×</button><div id="modal-content"></div></div>
+  </div>
+  <script src="/static/render.js"></script>
+  <script src="/static/app.js" defer></script>
+</body>
+</html>
