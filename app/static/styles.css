@@ -74,3 +74,349 @@
 #expiring-section{scroll-margin-top:24px}
 .card-subtitle{margin:4px 0 0;color:#879187;font-size:10px}
 @media(min-width:1151px){.stats-grid{grid-template-columns:repeat(5,minmax(0,1fr))}}
+
+
+/* Nutrition target progress: exact decimal values and remaining daily allowance. */
+.nutrition-progress-grid{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:4px}.nutrition-progress{min-width:0;border:1px solid var(--border,#e2e9e3);background:var(--surface-soft,#f7faf7);border-radius:12px;padding:12px}.nutrition-progress-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;color:var(--text-muted,#6b7b73)}.nutrition-progress-heading strong{font-size:13px;color:var(--text,#20342b)}.nutrition-progress-track{height:7px;margin:9px 0 7px;border-radius:999px;background:#e5ece5;overflow:hidden}.nutrition-progress-track span{display:block;height:100%;border-radius:inherit;background:var(--accent,#245b49);transition:width .25s ease}.nutrition-progress small{display:block;color:var(--text-muted,#6b7b73);font-size:11px;line-height:1.5}.nutrition-progress-grid+.field-help{grid-column:1/-1}@media(max-width:520px){.nutrition-progress-grid{grid-template-columns:1fr}}
+
+
+/* Food diary layout refinement: keep log entries visually separate from progress cards. */
+.food-diary-section {
+  clear: both;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border, #e2e9e3);
+}
+.food-diary-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.food-diary-section-heading h4 {
+  margin: 4px 0 0;
+  color: var(--text, #20342b);
+  font-size: 14px;
+  line-height: 1.4;
+}
+.food-diary-entries {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  width: 100%;
+}
+.food-diary-entries .compact-row {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 0;
+  border-top: 1px solid var(--border, #e2e9e3);
+}
+.food-diary-entries .compact-row:first-child {
+  padding-top: 4px;
+  border-top: 0;
+}
+.food-diary-entries .compact-info {
+  min-width: 0;
+}
+.food-diary-entries .compact-info strong {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.4;
+}
+.food-diary-entries .compact-info small {
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.food-diary-entries .text-button {
+  justify-self: end;
+}
+.food-diary-entries > .empty-state,
+.food-diary-entries > .empty {
+  margin-top: 4px;
+}
+@media (max-width: 520px) {
+  .food-diary-entries .compact-row {
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 9px;
+  }
+  .food-diary-entries .compact-row .text-button {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
+
+
+/* Nutrition comparison sections: keep planned and eaten progress visually distinct. */
+.nutrition-progress-section { display: grid; gap: 0.75rem; width: 100%; }
+.nutrition-progress-title { margin: 0; font-size: 0.9rem; font-weight: 700; color: var(--ink, #173b32); }
+.nutrition-progress-section .nutrition-progress-grid { margin-top: 0; }
+.nutrition-progress-section .field-help { margin: 0; }
+
+
+/* Nutrition cards: roomier, icon-led, consistent across Overview and Fitness. */
+.nutrition-progress-section { gap: 16px; }
+.nutrition-progress-title { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; font-size:16px; }
+.nutrition-context { color:var(--text-muted,#6b7b73); font-size:12px; font-weight:500; }
+.nutrition-progress-grid { gap:14px; margin-top:8px; }
+.nutrition-progress { border-radius:16px; padding:18px; min-height:124px; display:flex; flex-direction:column; justify-content:center; gap:8px; }
+.nutrition-progress-heading { font-size:14px; gap:10px; }
+.nutrition-progress-heading strong { font-size:16px; }
+.nutrition-label { display:inline-flex; align-items:center; gap:9px; min-width:0; }
+.nutrition-icon { width:34px; height:34px; flex:0 0 34px; display:inline-flex; align-items:center; justify-content:center; border-radius:11px; background:#e8f1e5; font-size:19px; }
+.nutrition-progress-track { height:9px; margin:2px 0; }
+.nutrition-progress small { font-size:12px; line-height:1.55; overflow-wrap:anywhere; }
+.eaten-only-card { min-height:148px; background:linear-gradient(145deg,#fbfdfb,#f2f7f0); }
+.eaten-only-value { font-size:clamp(25px,2vw,34px); line-height:1.15; letter-spacing:-.04em; color:var(--text,#20342b); }
+.eaten-only-value small { font-size:15px; letter-spacing:0; }
+.eaten-only-card > small { color:var(--text-muted,#6b7b73); }
+.eaten-only-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+@media(min-width:1400px) {
+  .eaten-only-grid, .nutrition-progress-section .nutrition-progress-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .nutrition-progress { padding:20px; }
+}
+@media(max-width:700px) {
+  .nutrition-progress-grid, .eaten-only-grid { grid-template-columns:1fr; }
+  .nutrition-progress { min-height:unset; padding:16px; }
+  .nutrition-progress-title { align-items:flex-start; flex-direction:column; }
+}
+
+.section-title-icon { display:inline-flex; align-items:center; justify-content:center; width:38px; height:38px; margin-right:10px; vertical-align:middle; border-radius:13px; background:#e9f2e5; font-size:20px; }
+.card-heading h3 { line-height:1.35; }
+.dashboard-columns > .content-card { padding:clamp(22px,2.1vw,32px); }
+.dashboard-columns .fitness-targets { gap:14px; align-content:start; }
+.fitness-summary-card { padding:20px; border-radius:16px; }
+.fitness-summary-card strong { font-size:15px; }
+.fitness-summary-card span { font-size:13px; line-height:1.6; overflow-wrap:anywhere; }
+
+/* Final nutrition dashboard layout fix: prevent icon/label collisions and use the full card width. */
+#fitness-summary.fitness-targets {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 16px;
+}
+#fitness-summary > .nutrition-progress-section {
+  grid-column: 1 / -1;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  margin-top: 4px;
+}
+#fitness-summary .nutrition-progress-title {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin: 0 0 14px;
+  line-height: 1.4;
+}
+#fitness-summary .nutrition-context {
+  display: block;
+  margin-left: 4px;
+}
+#fitness-summary .nutrition-progress-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 100%;
+  gap: 16px;
+  margin: 0;
+}
+#fitness-summary .nutrition-progress {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 154px;
+  padding: 20px;
+  gap: 12px;
+  overflow: hidden;
+}
+#fitness-summary .nutrition-progress-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  line-height: 1.4;
+}
+#fitness-summary .nutrition-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+#fitness-summary .nutrition-label > span:last-child {
+  min-width: 0;
+}
+#fitness-summary .nutrition-progress-heading > strong {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+#fitness-summary .nutrition-icon {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  border-radius: 13px;
+  font-size: 21px;
+}
+#fitness-summary .nutrition-progress small {
+  font-size: 13px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+#fitness-summary .nutrition-progress-track {
+  height: 9px;
+  margin: 0;
+}
+#fitness-summary .eaten-only-card {
+  justify-content: space-between;
+  background: linear-gradient(145deg, #fbfdfb, #f1f7ef);
+}
+#fitness-summary .eaten-only-value {
+  font-size: clamp(28px, 2.2vw, 38px);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+@media (min-width: 1200px) {
+  #fitness-summary .nutrition-progress-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 700px) {
+  #fitness-summary.fitness-targets { grid-template-columns: minmax(0, 1fr); }
+  #fitness-summary > .nutrition-progress-section { grid-column: 1; }
+  #fitness-summary .nutrition-progress-grid { grid-template-columns: minmax(0, 1fr); }
+  #fitness-summary .nutrition-progress { min-height: 132px; padding: 17px; }
+  #fitness-summary .nutrition-context { margin-left: 0; }
+}
+
+/* Final shared nutrition layout: identical, compact cards on Overview and Fitness. */
+#today-nutrition > .nutrition-progress-section,
+#fitness-summary > .nutrition-progress-section {
+  grid-column: 1 / -1;
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  gap: 12px;
+  margin: 8px 0 0;
+}
+#today-nutrition .nutrition-progress-title,
+#fitness-summary .nutrition-progress-title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.4;
+}
+#today-nutrition .nutrition-context,
+#fitness-summary .nutrition-context {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted, #6b7b73);
+}
+#today-nutrition .nutrition-progress-grid,
+#fitness-summary .nutrition-progress-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 100%;
+  gap: 12px;
+  margin: 0;
+}
+#today-nutrition .nutrition-progress,
+#fitness-summary .nutrition-progress {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 9px;
+  width: 100%;
+  min-width: 0;
+  min-height: 112px;
+  padding: 14px;
+  border-radius: 14px;
+  overflow-wrap: anywhere;
+}
+#today-nutrition .nutrition-progress-heading,
+#fitness-summary .nutrition-progress-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  font-size: 12px;
+  line-height: 1.35;
+}
+#today-nutrition .nutrition-label,
+#fitness-summary .nutrition-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+#today-nutrition .nutrition-icon,
+#fitness-summary .nutrition-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  border-radius: 10px;
+  font-size: 17px;
+}
+#today-nutrition .nutrition-progress-heading > strong,
+#fitness-summary .nutrition-progress-heading > strong {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  font-size: 13px;
+}
+#today-nutrition .nutrition-progress-track,
+#fitness-summary .nutrition-progress-track {
+  height: 7px;
+  margin: 0;
+}
+#today-nutrition .nutrition-progress small,
+#fitness-summary .nutrition-progress small {
+  display: block;
+  font-size: 11px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+#today-nutrition .eaten-only-card,
+#fitness-summary .eaten-only-card {
+  min-height: 112px;
+  justify-content: space-between;
+}
+#today-nutrition .eaten-only-value,
+#fitness-summary .eaten-only-value {
+  font-size: clamp(24px, 1.8vw, 30px);
+  line-height: 1.15;
+  letter-spacing: -.03em;
+  overflow-wrap: anywhere;
+}
+#today-nutrition .eaten-only-value small,
+#fitness-summary .eaten-only-value small { font-size: 13px; }
+@media (max-width: 700px) {
+  #today-nutrition .nutrition-progress,
+  #fitness-summary .nutrition-progress { min-height: 104px; padding: 12px; }
+  #today-nutrition .nutrition-progress-grid,
+  #fitness-summary .nutrition-progress-grid { gap: 10px; }
+}
+@media (max-width: 380px) {
+  #today-nutrition .nutrition-progress-grid,
+  #fitness-summary .nutrition-progress-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+#today-nutrition > .nutrition-progress-section { grid-column: 1 / -1; }

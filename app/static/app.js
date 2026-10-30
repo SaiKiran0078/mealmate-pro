@@ -5,6 +5,40 @@
   const state = { token: localStorage.getItem("mealmate_token") || "", user: null, pantry: [], recipes: [], suggestions: [], plans: [], authMode: "login" };
   const { esc, foodEmoji, fmtDate } = window.MealMateRender;
   const RM = window.MealMateRender;
+  // Keep nutrition decimals visible (e.g. 13.4 g) without noisy trailing zeros.
+  const nutritionNumber = (value) => {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return "0";
+    return number.toLocaleString(undefined, { maximumFractionDigits: 1 });
+  };
+  const NUTRIENT_META = [
+    ["Calories", "kcal", "kcal", "🔥"],
+    ["Protein", "protein_g", "g", "💪"],
+    ["Carbohydrates", "carbs_g", "g", "🌾"],
+    ["Fat", "fat_g", "g", "💧"],
+  ];
+  const nutritionProgress = (label, amount, target, unit, sourceLabel, icon) => {
+    const actual = Math.max(0, Number(amount) || 0);
+    const goal = Number(target);
+    if (!Number.isFinite(goal) || goal <= 0) return "";
+    const percent = Math.round(actual / goal * 100);
+    const remaining = Math.max(0, goal - actual);
+    const status = actual >= goal
+      ? `${nutritionNumber(actual - goal)} ${unit} over plan`
+      : `${nutritionNumber(remaining)} ${unit} remaining`;
+    return `<article class="nutrition-progress"><div class="nutrition-progress-heading"><span class="nutrition-label"><span class="nutrition-icon" aria-hidden="true">${icon}</span>${esc(label)}</span><strong>${percent}%</strong></div><div class="nutrition-progress-track" role="progressbar" aria-label="${esc(sourceLabel)} ${esc(label)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.min(100, percent)}"><span style="width:${Math.min(100, Math.max(0, percent))}%"></span></div><small>${nutritionNumber(actual)} / ${nutritionNumber(goal)} ${esc(unit)} · ${esc(status)}</small></article>`;
+  };
+  const eatenOnlyCard = (label, amount, unit, icon) => `<article class="nutrition-progress eaten-only-card"><div class="nutrition-progress-heading"><span class="nutrition-label"><span class="nutrition-icon" aria-hidden="true">${icon}</span>${esc(label)}</span></div><strong class="eaten-only-value">${nutritionNumber(amount)} <small>${esc(unit)}</small></strong><small>Logged today</small></article>`;
+  const remainingNutritionHtml = (consumed = {}, targets = null, planned = null) => {
+    const hasPlanned = planned && Number(planned.entries) > 0;
+    if (!hasPlanned) {
+      return `<section class="nutrition-progress-section"><h4 class="nutrition-progress-title">Eaten nutrition <span class="nutrition-context">From logged foods · no meal plan</span></h4><div class="nutrition-progress-grid eaten-only-grid">${NUTRIENT_META.map(([label,key,unit,icon]) => eatenOnlyCard(label, consumed[key], unit, icon)).join("")}</div></section>`;
+    }
+    const rows = NUTRIENT_META.map(([label,key,unit,icon]) =>
+      nutritionProgress(label, consumed[key], planned[key], unit, "Eaten against planned nutrition", icon)
+    ).join("");
+    return `<section class="nutrition-progress-section"><h4 class="nutrition-progress-title">Eaten vs planned nutrition <span class="nutrition-context">Per-person planned totals</span></h4><div class="nutrition-progress-grid">${rows}</div></section>`;
+  };
   const showToast = (message, type = "success") => {
     const el = document.createElement("div"); el.className = `toast ${type === "error" ? "error" : ""}`; el.textContent = message; $("#toast-region").append(el); setTimeout(() => el.remove(), 4200);
   };
@@ -22,7 +56,9 @@
       const detail = data && typeof data === "object" ? data.detail : data;
       const message = Array.isArray(detail) ? detail.map(e => { const raw = e.msg || "Please check this field."; return String(raw).replace(/Input should be a valid integer/gi, "Please enter a whole number").replace(/Field required/gi, "Please fill in this field").replace(/less than or equal to/gi, "must be no more than").replace(/greater than or equal to/gi, "must be at least"); }).join(". ") : (detail || `Request failed (${response.status})`);
       if (response.status === 401 && state.token) logout(false);
-      throw new Error(message);
+      const error = new Error(message);
+      error.status = response.status;
+      throw error;
     }
     return data;
   }
@@ -42,12 +78,14 @@
     $("#auth-switch").innerHTML = mode === "login" ? 'New to MealMate? <button type="button" data-auth-tab="register">Create an account</button>' : 'Already have an account? <button type="button" data-auth-tab="login">Sign in</button>';
   };
   async function logout(notify = true) {
-    state.token = ""; state.user = null; localStorage.removeItem("mealmate_token");
+    state.token = ""; state.user = null; localStorage.removeItem("mealmate_token"); localStorage.removeItem("mealmate_email");
     $("#app-shell").classList.add("hidden"); $("#auth-screen").classList.remove("hidden"); authScreen("login");
     if (notify) showToast("You have signed out.");
   }
   function enterApp(user) {
-    state.user = user; $("#auth-screen").classList.add("hidden"); $("#app-shell").classList.remove("hidden");
+    state.user = user;
+    if (user?.email) localStorage.setItem("mealmate_email", user.email);
+    $("#auth-screen").classList.add("hidden"); $("#app-shell").classList.remove("hidden");
     const email = user?.email || "My account", initial = email.charAt(0).toUpperCase() || "M";
     $("#profile-email").textContent = email; $("#avatar-initial").textContent = initial; $("#top-avatar").textContent = initial;
     $("#welcome-title").textContent = `Let's make something good${email.split("@")[0] ? `, ${email.split("@")[0]}` : ""}.`;
@@ -57,8 +95,23 @@
   }
   async function restoreSession() {
     if (!state.token) return authScreen();
-    try { const user = await api("/me"); enterApp(user); }
-    catch { state.token = ""; localStorage.removeItem("mealmate_token"); authScreen("login"); }
+    try {
+      const user = await api("/me");
+      enterApp(user);
+    } catch (error) {
+      // A 401 means the stored token is no longer valid. Network/5xx failures
+      // must not erase a valid token or the user's last visited section.
+      if (error.status === 401) {
+        state.token = "";
+        localStorage.removeItem("mealmate_token");
+        authScreen("login");
+        showToast("Your session expired. Please sign in again.", "error");
+        return;
+      }
+      const cachedEmail = localStorage.getItem("mealmate_email") || "My account";
+      enterApp({ email: cachedEmail });
+      showToast("Couldn't verify your session right now. Your saved session was kept; try again when the connection is back.", "error");
+    }
   }
   function navigate(page, options = {}) {
     const valid = ["dashboard","pantry","recipes","plans","fitness","preferences"].includes(page) ? page : "dashboard";
@@ -78,7 +131,7 @@
   const empty = RM.empty;
   async function loadDashboard() {
     try {
-      const d = await api("/dashboard");   // every overview number comes from this one endpoint
+      const [d, dailyNutrition] = await Promise.all([api("/dashboard"), api("/nutrition/daily")]);
       const st = RM.overviewStats(d);
       $("#stat-ingredients").textContent = st.ingredients; $("#stat-ingredients-note").textContent = st.ingredientsNote;
       $("#stat-expiring").textContent = st.expiring; $("#stat-expiring-note").textContent = st.expiringNote;
@@ -95,8 +148,21 @@
       $("#today-plan").innerHTML = t.length
         ? t.map(m => `<div class="compact-row"><span class="ingredient-symbol">${foodEmoji(m.title)}</span><div class="compact-info"><strong>${esc(m.title)}</strong><small>${esc(m.meal_type)}${m.cooked ? " · cooked" : ""}</small></div></div>`).join("")
         : empty("Nothing planned for today. Generate a plan to fill it.");
-      const target = n.target_kcal ? ` of ${n.target_kcal} kcal target` : "";
-      $("#today-nutrition").innerHTML = `<div class="fitness-summary-card"><strong>Planned (per person)</strong><span>${n.planned ? esc(n.planned.kcal) : 0} kcal</span><span>${n.planned ? esc(n.planned.protein_g) : 0} g protein</span></div><div class="fitness-summary-card"><strong>Eaten so far</strong><span>${esc(Math.round(n.consumed.kcal))} kcal${esc(target)}</span><span>${esc(n.consumed.protein_g)} g protein</span></div>`;
+      const consumed = dailyNutrition.consumed || n.consumed || {};
+      const planned = dailyNutrition.planned || n.planned || {};
+      const hasPlannedMeals = Number(planned.entries) > 0 || t.length > 0;
+      const targets = dailyNutrition.targets || (n.target_kcal ? {daily_kcal:n.target_kcal} : null);
+      // Keep the Overview's planned/eaten summaries in lockstep with Fitness & Nutrition.
+      // Planned meals are a forecast; personal daily targets are a separate goal and must not
+      // be overwritten by planned totals.
+      const summaryCard = (title, row, emptyLabel = "") => `<div class="fitness-summary-card"><strong>${title}</strong>${emptyLabel
+        ? `<span>${emptyLabel}</span><span>Add meals to your plan to see planned totals.</span>`
+        : `<span>${nutritionNumber(row.kcal)} kcal</span><span>${nutritionNumber(row.protein_g)} g protein · ${nutritionNumber(row.carbs_g)} g carbs · ${nutritionNumber(row.fat_g)} g fat</span>`}</div>`;
+      const plannedCard = hasPlannedMeals
+        ? summaryCard("Planned (per person)", planned)
+        : summaryCard("Planned (per person)", planned, "No meals planned");
+      const eatenCard = summaryCard("Eaten so far", consumed);
+      $("#today-nutrition").innerHTML = `${plannedCard}${eatenCard}${remainingNutritionHtml(consumed, targets, planned)}`;
     } catch (e) { showToast(e.message, "error"); }
   }
   async function loadPantry() {
@@ -278,11 +344,16 @@
   async function refreshFitness() {
     try {
       const [diary, summary, workouts] = await Promise.all([api("/diary"),api("/nutrition/daily"),api("/workouts?limit=8")]);
-      const card = (title,row) => `<div class="fitness-summary-card"><strong>${title}</strong><span>${Math.round(row.kcal||0)} kcal</span><span>${Math.round(row.protein_g||0)}g protein · ${Math.round(row.carbs_g||0)}g carbs · ${Math.round(row.fat_g||0)}g fat</span></div>`;
-      $("#fitness-summary").innerHTML = card("Planned",summary.planned) + card("Actually consumed",summary.consumed) + (summary.targets ? `<p class="field-help">Daily target: ${summary.targets.daily_kcal || summary.targets.daily_kcal === 0 ? summary.targets.daily_kcal : "not set"} kcal. Planned and consumed values are intentionally tracked separately.</p>` : "");
+      const card = (title,row,emptyLabel = "") => `<div class="fitness-summary-card"><strong>${title}</strong>${emptyLabel ? `<span>${emptyLabel}</span><span>Add meals to your plan to see planned totals.</span>` : `<span>${nutritionNumber(row.kcal)} kcal</span><span>${nutritionNumber(row.protein_g)} g protein · ${nutritionNumber(row.carbs_g)} g carbs · ${nutritionNumber(row.fat_g)} g fat</span>`}</div>`;
+      const plannedCard = Number(summary.planned?.entries) > 0
+        ? card("Planned", summary.planned)
+        : card("Planned", summary.planned, "No meals planned");
+      $("#fitness-summary").innerHTML = plannedCard + card("Actually consumed",summary.consumed) + remainingNutritionHtml(summary.consumed, summary.targets, summary.planned);
       const micros = Object.entries(summary.consumed_micronutrients || {});
       if (micros.length) $("#fitness-summary").insertAdjacentHTML("beforeend",`<p class="field-help">Micronutrient values recorded: ${micros.map(([k,v])=>`${esc(k)} ${v}`).join(" · ")}. Facts retain source metadata in diary entries.</p>`);
-      $("#food-diary-list").innerHTML = diary.length ? diary.map(d=>`<div class="compact-row"><span class="ingredient-symbol">${foodEmoji(d.item_name)}</span><div class="compact-info"><strong>${esc(d.item_name)}</strong><small>${esc(d.meal_type)} · ${d.servings} serving(s) · ${Math.round(d.kcal)} kcal</small></div><button class="text-button" data-delete-diary="${d.id}">Remove</button></div>`).join("") : empty("No food logged today yet.");
+      $("#food-diary-list").innerHTML = diary.length ? diary.map(d=>`<div class="compact-row"><span class="ingredient-symbol">${foodEmoji(d.item_name)}</span><div class="compact-info"><strong>${esc(d.item_name)}</strong><small>${esc(d.meal_type)} · ${d.servings} serving(s) · ${nutritionNumber(d.kcal)} kcal</small></div><button class="text-button" data-delete-diary="${d.id}">Remove</button></div>`).join("") : empty("No food logged today yet.");
+      const diaryCount = $("#food-diary-count");
+      if (diaryCount) diaryCount.textContent = `${diary.length} ${diary.length === 1 ? "ENTRY" : "ENTRIES"}`;
       const workoutRows = workouts.map(renderWorkoutRow).join("");
       $("#workout-list").innerHTML = workoutRows || empty("No workouts logged yet.");
     } catch(e) { showToast(e.message,"error"); }
@@ -403,7 +474,9 @@
       }
       const login = await api("/auth/login",{method:"POST",body:JSON.stringify(body)});
       state.token = login.access_token; localStorage.setItem("mealmate_token",state.token);
-      const user = await api("/me"); enterApp(user); return user;
+      const user = await api("/me");
+      if (user?.email) localStorage.setItem("mealmate_email", user.email);
+      enterApp(user); return user;
     }, "Connecting…");
     if (result) $("#auth-password").value = "";
   });
@@ -496,15 +569,16 @@
 
   $("#food-diary-form").addEventListener("submit", async (event) => {
     event.preventDefault();
-
-    const body = formObject(event.currentTarget);
+    const form = event.currentTarget;
+    const submitButton = $('button[type="submit"]', form);
+    const body = formObject(form);
 
     ["servings", "kcal", "protein_g", "carbs_g", "fat_g"].forEach((key) => {
       body[key] = asNumber(body[key]);
     });
 
     const result = await withBusy(
-      $('button[type="submit"]', event.currentTarget),
+      submitButton,
       () =>
         api("/diary", {
           method: "POST",
@@ -514,11 +588,11 @@
     );
 
     if (result) {
-      event.currentTarget.reset();
-      $("#diary-servings").value = 1;
-
+      form.reset();
+      $("#diary-meal").value = "";
+      $("#diary-servings").value = "1";
+      ["diary-kcal", "diary-protein", "diary-carbs", "diary-fat"].forEach((id) => { $(`#${id}`).value = "0"; });
       await refreshFitness();
-
       showToast("Food logged as consumed.");
     }
   });
@@ -545,6 +619,7 @@
 
     form.reset();
     $("#workout-duration").value = 45;
+    $("#workout-intensity").value = "moderate";
 
     // Render the server-confirmed workout immediately.
     const list = $("#workout-list");

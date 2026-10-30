@@ -114,11 +114,11 @@
             </section>
           </div>
           <div class="dashboard-columns">
-            <section class="content-card"><div class="card-heading"><div><span class="eyebrow">TODAY</span><h3>On the menu</h3></div><button class="text-button" data-page="plans">Meal planner →</button></div><div id="today-plan" class="compact-list"><div class="loading-line"></div></div></section>
-            <section class="content-card"><div class="card-heading"><div><span class="eyebrow">TODAY</span><h3>Planned vs eaten</h3></div><button class="text-button" data-page="fitness">Log food →</button></div><div id="today-nutrition" class="fitness-targets"><div class="loading-line"></div></div></section>
+            <section class="content-card"><div class="card-heading"><div><span class="eyebrow">TODAY</span><h3><span class="section-title-icon" aria-hidden="true">🗓️</span>On the menu</h3></div><button class="text-button" data-page="plans">Meal planner →</button></div><div id="today-plan" class="compact-list"><div class="loading-line"></div></div></section>
+            <section class="content-card"><div class="card-heading"><div><span class="eyebrow">TODAY</span><h3><span class="section-title-icon" aria-hidden="true">🍽️</span>Planned vs eaten</h3></div><button class="text-button" data-page="fitness">Log food →</button></div><div id="today-nutrition" class="fitness-targets"><div class="loading-line"></div></div></section>
           </div>
           <section class="content-card dashboard-favourites-card" id="dashboard-favourites">
-            <div class="card-heading"><div><span class="eyebrow">YOUR COLLECTION</span><h3>Favourite recipes</h3><p class="card-subtitle">Your go-to meals, all in one place.</p></div><button class="text-button" data-page="recipes">Discover more recipes →</button></div>
+            <div class="card-heading"><div><span class="eyebrow">YOUR COLLECTION</span><h3><span class="section-title-icon" aria-hidden="true">👨‍🍳</span>Favourite recipes</h3><p class="card-subtitle">Your go-to meals, all in one place.</p></div><button class="text-button" data-page="recipes">Discover more recipes →</button></div>
             <div id="dashboard-favourite-recipes-list" class="compact-list"><div class="loading-line"></div></div>
           </section>
           <div class="bottom-cta"><div class="cta-icon">✳</div><div><strong>Not sure what to cook?</strong><p>Tell MealMate what's in your pantry and get ideas made for you.</p></div><button class="btn btn-outline" data-page="recipes">Find my next meal →</button></div>
@@ -211,17 +211,24 @@
               <form id="food-diary-form">
                 <div class="field"><label for="diary-name">Food or meal</label><input id="diary-name" name="item_name" required maxlength="120" placeholder="e.g. Oats with milk"></div>
                 <div class="form-grid two-col">
-                  <div class="field"><label for="diary-meal">Meal</label><select id="diary-meal" name="meal_type"><option>breakfast</option><option>lunch</option><option>dinner</option><option>snack</option></select></div>
+                  <div class="field"><label for="diary-meal">Meal</label><select id="diary-meal" name="meal_type"><option value="" selected disabled>Choose a meal</option><option>breakfast</option><option>lunch</option><option>dinner</option><option>snack</option></select></div>
                   <div class="field"><label for="diary-servings">Servings</label><input id="diary-servings" name="servings" type="number" min="0.1" max="50" step="0.1" value="1"></div>
-                  <div class="field"><label for="diary-kcal">Calories (kcal)</label><input id="diary-kcal" name="kcal" type="number" min="0" value="0"></div>
-                  <div class="field"><label for="diary-protein">Protein (g)</label><input id="diary-protein" name="protein_g" type="number" min="0" value="0"></div>
-                  <div class="field"><label for="diary-carbs">Carbs (g)</label><input id="diary-carbs" name="carbs_g" type="number" min="0" value="0"></div>
-                  <div class="field"><label for="diary-fat">Fat (g)</label><input id="diary-fat" name="fat_g" type="number" min="0" value="0"></div>
+                  <div class="field"><label for="diary-kcal">Calories (kcal)</label><input id="diary-kcal" name="kcal" type="number" min="0" value="0" step="any"></div>
+                  <div class="field"><label for="diary-protein">Protein (g)</label><input id="diary-protein" name="protein_g" type="number" min="0" value="0" step="any"></div>
+                  <div class="field"><label for="diary-carbs">Carbs (g)</label><input id="diary-carbs" name="carbs_g" type="number" min="0" value="0" step="any"></div>
+                  <div class="field"><label for="diary-fat">Fat (g)</label><input id="diary-fat" name="fat_g" type="number" min="0" value="0" step="any"></div>
                 </div>
                 <div class="form-actions"><button type="submit" class="btn btn-primary">Log food consumed →</button></div>
               </form>
-              <div class="card-heading fitness-subheading"><div><span class="eyebrow">TODAY</span><h3>Consumed vs planned</h3></div><button type="button" class="text-button" id="fitness-refresh">Refresh →</button></div>
-              <div id="fitness-summary" class="fitness-targets"></div><div id="food-diary-list" class="compact-list"></div>
+              <div class="card-heading fitness-subheading"><div><span class="eyebrow">TODAY</span><h3><span class="section-title-icon" aria-hidden="true">🥗</span>Consumed vs planned</h3></div><button type="button" class="text-button" id="fitness-refresh">Refresh →</button></div>
+              <div id="fitness-summary" class="fitness-targets"></div>
+              <section class="food-diary-section" aria-labelledby="food-diary-list-heading">
+                <div class="food-diary-section-heading">
+                  <div><span class="eyebrow">YOUR RECORDS</span><h4 id="food-diary-list-heading">Food logged today</h4></div>
+                  <span class="small-badge" id="food-diary-count">TODAY</span>
+                </div>
+                <div id="food-diary-list" class="compact-list food-diary-entries"></div>
+              </section>
             </section>
             <section class="content-card">
               <div class="card-heading"><div><span class="eyebrow">MOVE WITH PURPOSE</span><h3>Workout log</h3></div></div>
@@ -265,6 +272,6 @@
     <div class="modal-backdrop" data-close-modal></div><div class="modal-panel"><button class="modal-close" data-close-modal aria-label="Close">×</button><div id="modal-content"></div></div>
   </div>
   <script src="/static/render.js"></script>
-  <script src="/static/app.js?v=20261028-workout-nav-eye" defer></script>
+  <script src="/static/app.js?v=20261029-nutrition-layout" defer></script>
 </body>
 </html>
